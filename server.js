@@ -1,3 +1,6 @@
+// init env variables
+require("dotenv").config();
+
 // server.js
 // where your node app starts
 
@@ -25,7 +28,35 @@ app.get("/api/hello", (req, res) => {
   res.json({ greeting: "hello API" });
 });
 
+app.get("/api/timestamp/", (req, res) => {
+  res.json({ unix: Date.now(), utc: Date() });
+});
+
+const isValidDate = (d) => {
+  return d instanceof Date && Number.isFinite(d.getTime());
+};
+
+app.get("/api/timestamp/:date_string", (req, res) => {
+  const { date_string: dateString } = req.params;
+
+  if (/\d{5,}/.test(dateString)) {
+    const dateInt = parseInt(dateString, 10);
+    return res.json({ unix: dateString, utc: new Date(dateInt).toUTCString() });
+  }
+
+  let date;
+
+  if (!dateString) date = new Date();
+  else date = new Date(dateString);
+
+  if (isValidDate(date)) {
+    return res.json({ unix: date.valueOf(), utc: date.toUTCString() });
+  }
+
+  return res.json({ error: "Invalid Date" });
+});
+
 // listen for requests :)
-const listener = app.listen(process.env.PORT, () => {
+const listener = app.listen(process.env.PORT || 3000, () => {
   console.log(`Your app is listening on port ${listener.address().port}`);
 });
